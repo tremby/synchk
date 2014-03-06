@@ -1,0 +1,119 @@
+*synchk.txt*	Syntax Checker    			May 29, 2013
+
+Author:    Charles E. Campbell      <NdrOchip@ScampbellPfamily.AbizM>
+           (remove NOSPAM from Campbell's email first)
+Copyright: (c) 2012-2013 by Charles E. Campbell     *synchk-copyright*
+           The VIM LICENSE applies to synchk.vim and synchk.txt
+           (see |copyright|) except use "synchk instead of "Vim"
+           NO WARRANTY, EXPRESS OR IMPLIED.  USE AT-YOUR-OWN-RISK.
+
+==============================================================================
+1. Contents					*synchk* *synchk-contents* {{{1
+
+	1. Contents..........................................: |synchk-contents|
+	2. Synchk Usage......................................: |synchk-usage|
+	3. Synchk Manual.....................................: |synchk-manual|
+	4. Synchk History....................................: |align-history|
+
+==============================================================================
+2.Synchk Usage					*synchk-usage* {{{1
+
+	The synchk.vim plugin helps syntax highlighting plugin writers to
+	maintain their syntax highlighting plugin.  Typical use involves
+	manually inspecting a test file to insure that its being highlighted
+	correctly; once that is so, run |:MakeSynChk| on it.  This operation
+	will save information on the current syntax highlighting;
+	subsequently, one may run |:SynChk| to verify that the highlighting
+	has not changed.
+
+	Typically, one has a test directory wherein are a number of files that
+	exercise various aspects of syntax highlighting.  After one is
+	satisfied that the syntax highlighting is correct, run >
+
+		:MakeSynChk
+<	
+	on the current file.  This operation will create a "synchk/" directory
+	if it doesn't already exist, and will create a
+	"filename_suffix.synchk" file.   
+
+	Assume that one then changes the syntax highlighting plugin; to verify
+	that highlighting has not changed in a previously :SynChk'd file, run >
+
+		:SynChk
+<
+	You may then have to type |:messages| to see the status.
+
+	One may also use the "many-file" variants of these two commands: >
+
+		:ManyMakeSynChk filename(s)
+		:ManySynChk filename(s)
+<
+	Method Used:~
+
+	The |:MakeSynChk| command computes a hash value for each line in the
+	current file, saving it to synchk/file_suffix.synchk.  The hash
+	involves synIDattr(synID(line("."),col("."),1),"name"); this is
+	(see |synIDattr|, |synID|, |line()|, and |col()|)
+	the name of the syntax item under the cursor.  The syntax name of
+	each character in a line are converted to numbers and hashed together.
+	Every line of the current file is thus converted into a hashed value;
+	the hashed value is saved.
+
+	Similarly, the |:SynChk| command also computes hash values for every
+	line in the current file; however, instead of saving the hashed value,
+	it compares it to the previously saved hash value.  If the two differ,
+	then syntax highlighting is considered to have failed.
+
+	Thus, |:Synchk| is sensitive to syntax highlighting changes on a
+	line by line basis, and can be used to locate unexpected changes in
+	syntax highlighting.  Of course, "failures" may be intentional.
+
+	Just run |:MakeSynChk| again when one is satisfied that the current
+	file is being highlighted correctly.
+
+==============================================================================
+3.Synchk Manual					*synchk-manual*  {{{1
+
+MakeSynChk					*:MakeSynChk*
+
+	Makes a synchk/testfile_suffix.synchk file out of the current file.
+
+ManyMakeSynChk					*:ManyMakeSynChk*
+
+	Runs |:MakeSynChk| using a list of files, which may include wildcards.
+
+SynChk						*:SynChk*
+
+	Runs synchk on the current file.
+	Returns 1=passed, 0=failed (changed).
+	Also displays a message, via |echomsg|, either:
+
+		testfile.suffix passed
+		testfile.suffix failed
+
+ManySynChk					*:ManySynChk*
+
+	Runs |:SynChk| on supplied list of files, which may include wildcards.
+
+==============================================================================
+4.Synchk History				*synchk-history* {{{1
+
+Dec 14, 2012	v1	* initial
+May 29, 2013		* (Bram Moolenaar) pointed out three problems, which
+			  are now fixed:
+
+			    In s:SynChkHash(), the hash local variable must
+			    always be set to zero
+
+			    The MakeSynChk() takes a range, but the range
+			    needed to start with the first line in the file.
+			    This should no longer be the case (the synchktab
+			    file will be padded with blank lines).
+
+			    In s:SynCHkHash(), the check for col('.') >= col('$')
+			    is unreliable (changed to use virtcol() instead).
+
+
+==============================================================================
+Modelines: {{{1
+vim:tw=78:ts=8:ft=help:fdm=marker:
